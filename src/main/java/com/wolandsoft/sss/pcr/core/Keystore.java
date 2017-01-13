@@ -21,6 +21,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
+import java.security.Security;
 import java.util.Base64;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -46,26 +48,24 @@ public class Keystore {
 	File storagePath = new File(System.getProperty("user.home"), ".sss");
 	storagePath.mkdir();
 	File filePath = new File(storagePath, "key");
-	if (filePath.exists()) {
-	    try (Scanner scanner = new Scanner(filePath)) {
-		String content = scanner.useDelimiter("\\Z").next();
-		// recreate key
-		byte[] aesKeyBuff = Base64.getDecoder().decode(content);
-		mKey = new SecretKeySpec(aesKeyBuff, "AES");
-	    } catch (FileNotFoundException | NoSuchElementException ignore) {
+	try (Scanner scanner = new Scanner(filePath)) {
+	    String content = scanner.useDelimiter("\\Z").next();
+	    // recreate key
+	    byte[] aesKeyBuff = Base64.getDecoder().decode(content);
+	    mKey = new SecretKeySpec(aesKeyBuff, "AES");
+	} catch (FileNotFoundException | NoSuchElementException ignore) {
 
-	    } finally {
-		if (mKey == null) {
-		    filePath.delete();
-		    try (FileWriter fw = new FileWriter(filePath)) {
-			// Generate key
-			KeyGenerator keygen = KeyGenerator.getInstance("AES");
-			mKey = keygen.generateKey();
-			String aesB64 = Base64.getEncoder().encodeToString(mKey.getEncoded());
-			fw.write(aesB64);
-		    } catch (IOException | NoSuchAlgorithmException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		    }
+	} finally {
+	    if (mKey == null) {
+		filePath.delete();
+		try (FileWriter fw = new FileWriter(filePath)) {
+		    // Generate key
+		    KeyGenerator keygen = KeyGenerator.getInstance("AES");
+		    mKey = keygen.generateKey();
+		    String aesB64 = Base64.getEncoder().encodeToString(mKey.getEncoded());
+		    fw.write(aesB64);
+		} catch (IOException | NoSuchAlgorithmException e) {
+		    throw new RuntimeException(e.getMessage(), e);
 		}
 	    }
 	}

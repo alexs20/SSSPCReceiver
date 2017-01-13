@@ -37,22 +37,20 @@ public class MulticastServer extends Thread {
 	File storagePath = new File(System.getProperty("user.home"), ".sss");
 	storagePath.mkdir();
 	File filePath = new File(storagePath, "port");
-	if (filePath.exists()) {
-	    try (Scanner scanner = new Scanner(filePath)) {
-		String content = scanner.useDelimiter("\\Z").next();
-		// recreate port
-		mPort = Integer.valueOf(content);
-	    } catch (FileNotFoundException ignore) {
+	try (Scanner scanner = new Scanner(filePath)) {
+	    String content = scanner.useDelimiter("\\Z").next();
+	    // recreate port
+	    mPort = Integer.valueOf(content);
+	} catch (FileNotFoundException ignore) {
 
-	    } finally {
-		if (mPort == 0) {
-		    filePath.delete();
-		    try (FileWriter fw = new FileWriter(filePath); ServerSocket serverSocket = new ServerSocket(0)) {
-			mPort = serverSocket.getLocalPort();
-			fw.write(String.valueOf(mPort));
-		    } catch (IOException e) {
-			throw new RuntimeException(e.getMessage(), e);
-		    }
+	} finally {
+	    if (mPort == 0) {
+		filePath.delete();
+		try (FileWriter fw = new FileWriter(filePath); ServerSocket serverSocket = new ServerSocket(0)) {
+		    mPort = serverSocket.getLocalPort();
+		    fw.write(String.valueOf(mPort));
+		} catch (IOException e) {
+		    throw new RuntimeException(e.getMessage(), e);
 		}
 	    }
 	}
