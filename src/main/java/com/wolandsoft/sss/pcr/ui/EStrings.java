@@ -23,7 +23,7 @@ public enum EStrings {
     msg_system_tray_is_not_supported,
     msg_data_copied,
     lbl_app_name,
-    lbl_enable,
+    lbl_pause,
     lbl_show_pair_key,
     lbl_exit,
     lbl_error,

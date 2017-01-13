@@ -52,39 +52,33 @@ public class TrayIconUI {
 	    // Create a popup menu components
 	    MenuItem showKeyItem = new MenuItem(EStrings.lbl_show_pair_key.toString());
 	    MenuItem exitItem = new MenuItem(EStrings.lbl_exit.toString());
-	    CheckboxMenuItem enableItem = new CheckboxMenuItem(EStrings.lbl_enable.toString());
+	    CheckboxMenuItem pauseItem = new CheckboxMenuItem(EStrings.lbl_pause.toString());
 
 	    // Add components to popup menu
-	    popup.add(enableItem);
+	    popup.add(pauseItem);
 	    popup.add(showKeyItem);
 	    popup.addSeparator();
 	    popup.add(exitItem);
-	    popup.addSeparator();
 
 	    mTrayIcon.setPopupMenu(popup);
 	    tray.add(mTrayIcon);
 
 	    showKeyItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
-		    listener.onShowKey();
+		    mListener.onShowKey();
 		}
 	    });
 
-	    enableItem.addItemListener(new ItemListener() {
+	    pauseItem.addItemListener(new ItemListener() {
 		public void itemStateChanged(ItemEvent e) {
-		    int cb1Id = e.getStateChange();
-		    if (cb1Id == ItemEvent.SELECTED) {
-
-		    } else {
-
-		    }
+		    mListener.onPause(e.getStateChange() == ItemEvent.SELECTED);
 		}
 	    });
 
 	    exitItem.addActionListener(new ActionListener() {
 		public void actionPerformed(ActionEvent e) {
 		    tray.remove(mTrayIcon);
-		    System.exit(0);
+		    mListener.onExit();
 		}
 	    });
 
@@ -99,5 +93,7 @@ public class TrayIconUI {
 
     public interface TrayIconListener {
 	void onShowKey();
+	void onPause(boolean state);
+	void onExit();
     }
 }

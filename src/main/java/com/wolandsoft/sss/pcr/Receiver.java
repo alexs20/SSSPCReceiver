@@ -43,7 +43,7 @@ import com.wolandsoft.sss.pcr.ui.QRCodePanel;
 import com.wolandsoft.sss.pcr.ui.TrayIconUI;
 import com.wolandsoft.sss.pcr.ui.TrayIconUI.TrayIconListener;
 
-public class Receiver implements TrayIconListener {
+public class Receiver implements TrayIconListener, MulticastServerDataListener {
 
     public static void main(String[] args) throws InterruptedException {
 	Receiver receiver = new Receiver();
@@ -54,22 +54,12 @@ public class Receiver implements TrayIconListener {
     private Keystore mKeystore;
     private MulticastServer mServer;
     private JDialog mQRCodeDialog;
+    private boolean mPause = false;
 
     public Receiver() {
 	mKeystore = new Keystore();
 	mTrayIcon = new TrayIconUI(this);
-	mServer = new MulticastServer(new MulticastServerDataListener() {
-
-	    @Override
-	    public void onDataReceived(byte[] data) {
-		String str = new String(mKeystore.decipher(data));
-		StringSelection stringSelection = new StringSelection(str);
-		Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clpbrd.setContents(stringSelection, null);
-		mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_data_copied.toString());
-
-	    }
-	});
+	mServer = new MulticastServer(this);
     }
 
     public void run() throws InterruptedException {
@@ -128,5 +118,27 @@ public class Receiver implements TrayIconListener {
 		    JOptionPane.ERROR_MESSAGE);
 	}
 
+    }
+
+    @Override
+    public void onPause(boolean state) {
+	mPause = state;
+    }
+
+    @Override
+    public void onExit() {
+	mServer.finish();
+	System.exit(0);
+    }
+
+    @Override
+    public void onDataReceived(byte[] data) {
+	if (!mPause) {
+	    String str = new String(mKeystore.decipher(data));
+	    StringSelection stringSelection = new StringSelection(str);
+	    Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+	    clpbrd.setContents(stringSelection, null);
+	    mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_data_copied.toString());
+	}
     }
 }
