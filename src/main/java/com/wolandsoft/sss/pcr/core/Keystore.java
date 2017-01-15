@@ -35,6 +35,11 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+/**
+ * AES key storage
+ *
+ * @author Alexander Shulgin
+ */
 public class Keystore {
     private SecretKey mKey;
     private Cipher mCipher;
@@ -77,10 +82,9 @@ public class Keystore {
 
     }
 
-    public String decipher(byte[] data) {
+    public byte [] decipher(byte[] data) {
 	try {
-	    byte[] decipheredBuff = mCipher.doFinal(data);
-	    return new String(decipheredBuff);
+	    return mCipher.doFinal(data);
 	} catch (IllegalBlockSizeException | BadPaddingException e) {
 	    throw new RuntimeException(e.getMessage(), e);
 	}
@@ -88,5 +92,9 @@ public class Keystore {
 
     public String getKeyBase64() {
 	return Base64.getEncoder().encodeToString(mKey.getEncoded());
+    }
+    
+    public byte [] getKey() {
+	return mKey.getEncoded();
     }
 }

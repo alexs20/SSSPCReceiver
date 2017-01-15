@@ -18,10 +18,16 @@ package com.wolandsoft.sss.pcr.ui;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+/**
+ * String resources
+ *
+ * @author Alexander Shulgin
+ */
 public enum EStrings {
     
     msg_system_tray_is_not_supported,
     msg_data_copied,
+    msg_pair_completed,
     lbl_app_name,
     lbl_pause,
     lbl_show_pair_key,
@@ -31,7 +37,7 @@ public enum EStrings {
     ;
     
     private static ResourceBundle mStringsResource = ResourceBundle.getBundle(
-	    EStrings.class.getPackage().getName() + ".strings.StringsBundle", Locale.ENGLISH);
+	    EStrings.class.getPackage().getName() + ".strings.StringsBundle", Locale.getDefault());
 
     public String toString(){
 	return mStringsResource.getString(this.name());

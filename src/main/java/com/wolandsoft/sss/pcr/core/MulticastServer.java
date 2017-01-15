@@ -25,6 +25,11 @@ import java.net.MulticastSocket;
 import java.net.ServerSocket;
 import java.util.Scanner;
 
+/**
+ * Multicast data receiver
+ *
+ * @author Alexander Shulgin
+ */
 public class MulticastServer extends Thread {
     private static final String ALL_HOSTS_MC_ADDRESS = "224.0.0.1";
     private static final int PACKET_SIZE = 8192;

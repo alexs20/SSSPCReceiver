@@ -29,6 +29,11 @@ import java.awt.image.BufferedImage;
 
 import javax.imageio.ImageIO;
 
+/**
+ * System tray icon and it's menu.
+ *
+ * @author Alexander Shulgin
+ */
 public class TrayIconUI {
     private TrayIcon mTrayIcon;
     private TrayIconListener mListener;

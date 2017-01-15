@@ -23,8 +23,14 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.zip.CRC32;
+import java.util.zip.Checksum;
 
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
@@ -50,6 +56,9 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
 	receiver.run();
     }
 
+    private static final int CMD_PING = 0;
+    private static final int CMD_DATA = 1;
+
     private TrayIconUI mTrayIcon;
     private Keystore mKeystore;
     private MulticastServer mServer;
@@ -67,14 +76,45 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
 	mServer.join();
     }
 
-    @Override
-    public void onShowKey() {
+    private void hideQRCode() {
 	if (mQRCodeDialog != null) {
 	    mQRCodeDialog.setVisible(false);
+	    mQRCodeDialog.dispose();
+	    mQRCodeDialog = null;
 	}
-	String strToEncode = mServer.getPort() + ":" + mKeystore.getKeyBase64();
-	QRCodePanel imgPanel;
+    }
+
+    @Override
+    public void onShowKey() {
+	hideQRCode();
+
 	try {
+	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+	    DataOutputStream dos = new DataOutputStream(baos);
+	    // store port
+	    dos.writeInt(mServer.getPort());
+	    // store key
+	    byte[] key = mKeystore.getKey();
+	    dos.writeInt(key.length);
+	    dos.write(key, 0, key.length);
+	    dos.close();
+	    byte[] payload = baos.toByteArray();
+	    Checksum checksum = new CRC32();
+	    checksum.update(payload, 0, payload.length);
+	    long checksumValue = checksum.getValue();
+
+	    baos = new ByteArrayOutputStream();
+	    dos = new DataOutputStream(baos);
+	    // store payload
+	    dos.writeInt(payload.length);
+	    dos.write(payload, 0, payload.length);
+	    // store crc
+	    dos.writeLong(checksumValue);
+	    dos.close();
+	    byte[] data = baos.toByteArray();
+	    // to base64
+	    String strToEncode = Base64.getEncoder().encodeToString(data);
+
 	    Dimension Size = Toolkit.getDefaultToolkit().getScreenSize();
 	    int size = (int) Math.min(Size.getWidth() / 2, Size.getHeight() / 2);
 	    Map<EncodeHintType, Object> hintMap = new EnumMap<EncodeHintType, Object>(EncodeHintType.class);
@@ -104,7 +144,7 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
 		}
 	    }
 
-	    imgPanel = new QRCodePanel(image);
+	    QRCodePanel imgPanel = new QRCodePanel(image);
 	    mQRCodeDialog = new JDialog((Frame) null, EStrings.lbl_app_name.toString(), true);
 	    mQRCodeDialog.setResizable(false);
 	    mQRCodeDialog.getContentPane().add(imgPanel);
@@ -113,7 +153,7 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
 	    mQRCodeDialog.setLocation(new Double((Size.getWidth() / 2) - (mQRCodeDialog.getWidth() / 2)).intValue(),
 		    new Double((Size.getHeight() / 2) - (mQRCodeDialog.getHeight() / 2)).intValue());
 	    mQRCodeDialog.setVisible(true);
-	} catch (WriterException e) {
+	} catch (WriterException | IOException e) {
 	    JOptionPane.showMessageDialog(null, e.getMessage(), EStrings.lbl_error.toString(),
 		    JOptionPane.ERROR_MESSAGE);
 	}
@@ -134,11 +174,23 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
     @Override
     public void onDataReceived(byte[] data) {
 	if (!mPause) {
-	    String str = new String(mKeystore.decipher(data));
-	    StringSelection stringSelection = new StringSelection(str);
-	    Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
-	    clpbrd.setContents(stringSelection, null);
-	    mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_data_copied.toString());
+	    byte[] plain = mKeystore.decipher(data);
+	    // first byte = command
+	    // rest = payload
+	    switch (plain[0]) {
+	    case CMD_PING:
+		hideQRCode();
+		mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_pair_completed.toString());
+		break;
+	    case CMD_DATA:
+	    default:
+		String str = new String(plain, 1, plain.length - 1);
+		StringSelection stringSelection = new StringSelection(str);
+		Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		clpbrd.setContents(stringSelection, null);
+		mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_data_copied.toString());
+		break;
+	    }
 	}
     }
 }

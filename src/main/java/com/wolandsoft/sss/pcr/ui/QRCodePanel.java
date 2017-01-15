@@ -20,16 +20,22 @@ import java.awt.image.BufferedImage;
 
 import javax.swing.JPanel;
 
-public class QRCodePanel extends JPanel{
+/**
+ * QR code view
+ *
+ * @author Alexander Shulgin
+ */
+public class QRCodePanel extends JPanel {
+    private static final long serialVersionUID = 6087120753165408661L;
     private BufferedImage mImage;
-    
-    public QRCodePanel(BufferedImage image){
+
+    public QRCodePanel(BufferedImage image) {
 	mImage = image;
     }
-    
+
     @Override
     protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.drawImage(mImage, 0, 0, null); // see javadoc for more info on the parameters            
+	super.paintComponent(g);
+	g.drawImage(mImage, 0, 0, null);
     }
 }
