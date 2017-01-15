@@ -28,9 +28,13 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.GeneralSecurityException;
 import java.util.Base64;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
 
@@ -43,7 +47,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.qrcode.QRCodeWriter;
 import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
-import com.wolandsoft.sss.pcr.core.Keystore;
+import com.wolandsoft.sss.pcr.core.AESIVPerCipher;
 import com.wolandsoft.sss.pcr.core.MulticastServer;
 import com.wolandsoft.sss.pcr.core.MulticastServer.MulticastServerDataListener;
 import com.wolandsoft.sss.pcr.ui.EStrings;
@@ -52,6 +56,7 @@ import com.wolandsoft.sss.pcr.ui.TrayIconUI;
 import com.wolandsoft.sss.pcr.ui.TrayIconUI.TrayIconListener;
 
 public class Receiver implements TrayIconListener, MulticastServerDataListener {
+    private static final Logger logger = Logger.getLogger(Receiver.class.getName());
 
     public static void main(String[] args) throws InterruptedException {
 	Receiver receiver = new Receiver();
@@ -62,13 +67,17 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
     private static final int CMD_DATA = 1;
 
     private TrayIconUI mTrayIcon;
-    private Keystore mKeystore;
+    private AESIVPerCipher mKeystore;
     private MulticastServer mServer;
     private JDialog mQRCodeDialog;
     private boolean mPause = false;
 
     public Receiver() {
-	mKeystore = new Keystore();
+	try {
+	    mKeystore = new AESIVPerCipher();
+	} catch (GeneralSecurityException e) {
+	    throw new RuntimeException(e.getMessage(), e);
+	}
 	mTrayIcon = new TrayIconUI(this);
 	mServer = new MulticastServer(this);
     }
@@ -176,35 +185,40 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
     @Override
     public void onDataReceived(byte[] data) {
 	if (!mPause) {
-	    byte[] plain = mKeystore.decipher(data);
-	    // first byte = command
-	    // rest = payload
-	    switch (plain[0]) {
-	    case CMD_PING:
-		hideQRCode();
-		mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_pair_completed.toString());
-		break;
-	    case CMD_DATA:
-	    default:
-		try {
-		    ByteArrayInputStream bais = new ByteArrayInputStream(plain, 1, plain.length - 1);
-		    DataInputStream dis = new DataInputStream(bais);
-		    int size = dis.readInt();
-		    byte[] strData = new byte[size];
-		    dis.readFully(strData);
-		    String title = new String(strData, "UTF-8");
-		    size = dis.readInt();
-		    strData = new byte[size];
-		    dis.readFully(strData);
-		    String str = new String(strData, "UTF-8");
-		    StringSelection stringSelection = new StringSelection(str);
-		    Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		    clpbrd.setContents(stringSelection, null);
+	    try {
+		byte[] plain = mKeystore.decipher(data);
+		// first byte = command
+		// rest = payload
+		switch (plain[0]) {
+		case CMD_PING:
+		    hideQRCode();
 		    mTrayIcon.showNotification(EStrings.lbl_app_name.toString(),
-			    String.format(EStrings.msg_data_copied.toString(), title));
+			    EStrings.msg_pair_completed.toString());
 		    break;
-		} catch (Exception ignore) {
+		case CMD_DATA:
+		default:
+		    try {
+			ByteArrayInputStream bais = new ByteArrayInputStream(plain, 1, plain.length - 1);
+			DataInputStream dis = new DataInputStream(bais);
+			int size = dis.readInt();
+			byte[] strData = new byte[size];
+			dis.readFully(strData);
+			String title = new String(strData, "UTF-8");
+			size = dis.readInt();
+			strData = new byte[size];
+			dis.readFully(strData);
+			String str = new String(strData, "UTF-8");
+			StringSelection stringSelection = new StringSelection(str);
+			Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+			clpbrd.setContents(stringSelection, null);
+			mTrayIcon.showNotification(EStrings.lbl_app_name.toString(),
+				String.format(EStrings.msg_data_copied.toString(), title));
+			break;
+		    } catch (Exception ignore) {
+		    }
 		}
+	    } catch (GeneralSecurityException e) {
+		logger.log(Level.WARNING, e.getMessage(), e);
 	    }
 	}
     }
