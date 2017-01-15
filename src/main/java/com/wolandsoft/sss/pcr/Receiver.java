@@ -23,7 +23,9 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Base64;
@@ -184,12 +186,25 @@ public class Receiver implements TrayIconListener, MulticastServerDataListener {
 		break;
 	    case CMD_DATA:
 	    default:
-		String str = new String(plain, 1, plain.length - 1);
-		StringSelection stringSelection = new StringSelection(str);
-		Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
-		clpbrd.setContents(stringSelection, null);
-		mTrayIcon.showNotification(EStrings.lbl_app_name.toString(), EStrings.msg_data_copied.toString());
-		break;
+		try {
+		    ByteArrayInputStream bais = new ByteArrayInputStream(plain, 1, plain.length - 1);
+		    DataInputStream dis = new DataInputStream(bais);
+		    int size = dis.readInt();
+		    byte[] strData = new byte[size];
+		    dis.readFully(strData);
+		    String title = new String(strData, "UTF-8");
+		    size = dis.readInt();
+		    strData = new byte[size];
+		    dis.readFully(strData);
+		    String str = new String(strData, "UTF-8");
+		    StringSelection stringSelection = new StringSelection(str);
+		    Clipboard clpbrd = Toolkit.getDefaultToolkit().getSystemClipboard();
+		    clpbrd.setContents(stringSelection, null);
+		    mTrayIcon.showNotification(EStrings.lbl_app_name.toString(),
+			    String.format(EStrings.msg_data_copied.toString(), title));
+		    break;
+		} catch (Exception ignore) {
+		}
 	    }
 	}
     }
