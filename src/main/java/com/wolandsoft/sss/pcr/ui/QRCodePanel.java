@@ -22,8 +22,6 @@ import javax.swing.JPanel;
 
 /**
  * QR code view
- *
- * @author Alexander Shulgin
  */
 public class QRCodePanel extends JPanel {
     private static final long serialVersionUID = 6087120753165408661L;

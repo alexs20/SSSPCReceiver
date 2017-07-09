@@ -31,8 +31,6 @@ import javax.imageio.ImageIO;
 
 /**
  * System tray icon and it's menu.
- *
- * @author Alexander Shulgin
  */
 public class TrayIconUI {
     private TrayIcon mTrayIcon;

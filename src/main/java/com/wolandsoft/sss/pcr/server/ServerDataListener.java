@@ -13,31 +13,8 @@
     See the License for the specific language governing permissions and
     limitations under the License.
 */
-package com.wolandsoft.sss.pcr.ui;
+package com.wolandsoft.sss.pcr.server;
 
-import java.util.Locale;
-import java.util.ResourceBundle;
-
-/**
- * String resources
- */
-public enum EStrings {
-    
-    msg_system_tray_is_not_supported,
-    msg_data_copied,
-    msg_pair_completed,
-    lbl_app_name,
-    lbl_pause,
-    lbl_show_pair_key,
-    lbl_exit,
-    lbl_error,
-    
-    ;
-    
-    private static ResourceBundle mStringsResource = ResourceBundle.getBundle(
-	    EStrings.class.getPackage().getName() + ".strings.StringsBundle", Locale.getDefault());
-
-    public String toString(){
-	return mStringsResource.getString(this.name());
-    }
+public interface ServerDataListener {
+    void onDataReceived(byte[] data);
 }

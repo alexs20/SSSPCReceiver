@@ -18,25 +18,21 @@ package com.wolandsoft.sss.pcr.security;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
-
-import com.wolandsoft.sss.pcr.core.PrefProperties;
+import java.util.prefs.Preferences;
 
 /**
  * Base64 wrapped AES cipher
- *
- * @author Alexander Shulgin
  */
 
 public class TextCipher extends AESCipher {
 
-    private static final String PREF_KEY = "key";
+    private static final String KEY = "key";
 
     public TextCipher() throws GeneralSecurityException {
 	super(getAesKey());
 	if (isGenerated()) {
-	    PrefProperties prefs = PrefProperties.getInstance();
-	    prefs.put(PREF_KEY, Base64.getEncoder().encodeToString(getKey()));
-	    prefs.commit();
+	    Preferences prefs = Preferences.userNodeForPackage(TextCipher.class);
+	    prefs.put(KEY, Base64.getEncoder().encodeToString(getKey()));
 	}
     }
 
@@ -59,10 +55,10 @@ public class TextCipher extends AESCipher {
 	    throw new RuntimeException(e.getMessage(), e);
 	}
     }
-    
+
     private static byte[] getAesKey() {
-	PrefProperties prefs = PrefProperties.getInstance();
-	String aesKeyB64 = prefs.getProperty(PREF_KEY);
+	Preferences prefs = Preferences.userNodeForPackage(TextCipher.class);
+	String aesKeyB64 = prefs.get(KEY, null);
 	if (aesKeyB64 != null) {
 	    return Base64.getDecoder().decode(aesKeyB64);
 	}

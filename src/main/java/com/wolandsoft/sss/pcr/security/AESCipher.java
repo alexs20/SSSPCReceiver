@@ -30,8 +30,6 @@ import javax.crypto.spec.SecretKeySpec;
 
 /**
  * AES cipher
- *
- * @author Alexander Shulgin
  */
 public class AESCipher {
     private static final String AES = "AES";
@@ -93,7 +91,7 @@ public class AESCipher {
      *
      * @param payload
      *            encrypted value
-     * @return decrypted vale
+     * @return decrypted value
      * @throws GeneralSecurityException
      */
     public byte[] decipher(byte[] payload) throws GeneralSecurityException {
