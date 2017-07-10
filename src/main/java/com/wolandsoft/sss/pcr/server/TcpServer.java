@@ -67,7 +67,9 @@ public class TcpServer extends Thread {
 		logger.log(Level.WARNING, e.getMessage(), e);
 	    }
 	    byte[] data = baOutStream.toByteArray();
-	    mListener.onDataReceived(data);
+	    if(data.length > 0) {
+		mListener.onDataReceived(data);
+	    }
 	}
     }
 
