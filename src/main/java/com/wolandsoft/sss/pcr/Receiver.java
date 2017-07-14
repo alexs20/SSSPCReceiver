@@ -21,9 +21,15 @@ import java.awt.datatransfer.StringSelection;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.util.Base64;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.zip.CRC32;
@@ -44,6 +50,7 @@ import com.wolandsoft.sss.pcr.ui.TrayIconUI;
 import com.wolandsoft.sss.pcr.ui.TrayIconUI.TrayIconListener;
 
 public class Receiver implements TrayIconListener, ServerDataListener {
+    private static final int PROTOCOL_VER = 1;
     private static final Logger logger = Logger.getLogger(Receiver.class.getName());
 
     public static void main(String[] args) throws InterruptedException {
@@ -89,14 +96,18 @@ public class Receiver implements TrayIconListener, ServerDataListener {
     @Override
     public void onShowKey() {
 	hideQRCode();
-
+        
 	try {
 	    ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	    DataOutputStream dos = new DataOutputStream(baos);
+	    // store IP
+	    byte[] host = mServer.getIP();
+	    dos.writeInt(host.length);
+	    dos.write(host, 0, host.length);
 	    // store port
 	    dos.writeInt(mServer.getPort());
 	    //store host
-	    byte[] host = mServer.getHost().getBytes(StandardCharsets.UTF_8);
+	    host = mServer.getHost().getBytes(StandardCharsets.UTF_8);
 	    dos.writeInt(host.length);
 	    dos.write(host, 0, host.length);
 	    // store key
@@ -109,6 +120,7 @@ public class Receiver implements TrayIconListener, ServerDataListener {
 	    checksum.update(payload, 0, payload.length);
 	    long checksumValue = checksum.getValue();
 	    baos.reset();
+	    dos.writeInt(PROTOCOL_VER);
 	    dos.writeLong(checksumValue);
 	    dos.writeInt(payload.length);
 	    dos.write(payload);

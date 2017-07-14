@@ -2,7 +2,7 @@
 <launch4jConfig>
   <dontWrapJar>true</dontWrapJar>
   <headerType>gui</headerType>
-  <jar>pc-receiver-1.4.0.0.jar</jar>
+  <jar>pc-receiver-1.4.1.1.jar</jar>
   <outfile>..\target\SiestoPcReceiver.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
@@ -28,12 +28,12 @@
     <runtimeBits>64/32</runtimeBits>
   </jre>
   <versionInfo>
-    <fileVersion>1.4.0.0</fileVersion>
-    <txtFileVersion>1.4.0.0</txtFileVersion>
+    <fileVersion>1.4.1.1</fileVersion>
+    <txtFileVersion>1.4.1.1</txtFileVersion>
     <fileDescription>Siesto PC-Receiver</fileDescription>
     <copyright>Wolandsoft (Alexander Shulgin)</copyright>
-    <productVersion>1.4.0.0</productVersion>
-    <txtProductVersion>1.4.0.0</txtProductVersion>
+    <productVersion>1.4.1.1</productVersion>
+    <txtProductVersion>1.4.1.1</txtProductVersion>
     <productName>Siesto PC-Receiver</productName>
     <companyName></companyName>
     <internalName>Siesto PC-Receiver</internalName>

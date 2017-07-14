@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.wolandsoft.sss</groupId>
 	<artifactId>pc-receiver</artifactId>
-	<version>1.4.0.0</version>
+	<version>1.4.1.1</version>
 	<name>SssPcReceiver</name>
 	<description>PC Receiver for Simple Secret Storage</description>
 	<dependencies>

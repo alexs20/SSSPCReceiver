@@ -18,10 +18,12 @@ package com.wolandsoft.sss.pcr.server;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.prefs.Preferences;
@@ -67,7 +69,7 @@ public class TcpServer extends Thread {
 		logger.log(Level.WARNING, e.getMessage(), e);
 	    }
 	    byte[] data = baOutStream.toByteArray();
-	    if(data.length > 0) {
+	    if (data.length > 0) {
 		mListener.onDataReceived(data);
 	    }
 	}
@@ -87,6 +89,15 @@ public class TcpServer extends Thread {
 
     public int getPort() {
 	return mPort;
+    }
+
+    public byte[] getIP() {
+	try (final DatagramSocket socket = new DatagramSocket()) {
+	    socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+	    return socket.getLocalAddress().getAddress();
+	} catch (UnknownHostException | SocketException ignore) {
+	    return mLocalAddress.getAddress();
+	}
     }
 
     public String getHost() {
